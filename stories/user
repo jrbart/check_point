@@ -1,0 +1,14 @@
+a user can set up contacts to be notified when a checkpoint is triggered
+
+a user can change active contacts through the GraphQL API
+
+a user can set up checkpoints/alert/agents/triggers/events conditions that are checked on a regular basis
+
+a user can set up actions that are applied when a checkpoint is triggered
+
+an event can be escelated from info/warning/caution/alert levels with an action taken on each
+
+a user can query the API for status information about any checkpoint
+
+a user can subscribe to any checkpoint esclatations through the API
+
