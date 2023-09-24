@@ -32,3 +32,4 @@ check_point-*.tar
 # Ignore LSP cache dirs
 .elixir**
 .lexical**
+*backup**
