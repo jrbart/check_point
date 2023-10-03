@@ -33,3 +33,6 @@ check_point-*.tar
 .elixir**
 .lexical**
 *backup**
+
+# For now I am going to hide my tiddly wiki from my git repo...
+dev*.html
