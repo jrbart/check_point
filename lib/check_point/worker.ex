@@ -11,10 +11,10 @@ defmodule CheckPoint.Worker do
   # the initialization showld quckly return so the engine can move on to 
   # initializing the rest of the checks.
   @impl true
-  def init(init_list) do
+  def init(init_map) do
     IO.puts("init")
-    IO.inspect(init_list)
-    {:ok, init_list, {:continue, :start}}
+    IO.inspect(init_map)
+    {:ok, init_map, {:continue, :start}}
   end
 
   # call the check function and wait for the results
@@ -35,6 +35,20 @@ defmodule CheckPoint.Worker do
     IO.inspect(state)
     %{fn: check_fn, arg: arg} = state
     IO.inspect(check_fn.(arg))
+    # send_after takes a delay that is minutes * seconds * milliseconds
+    Process.send_after(self(), :looping, 1 * 1 * 1000) 
+    {:noreply, state} 
+  end
+
+  # this is the main loop
+  @impl true
+  def handle_info(:looping, state) do
+    IO.puts("loop")
+    IO.inspect(state)
+    %{fn: check_fn, arg: arg} = state
+    IO.inspect(check_fn.(arg))
+    # send_after takes a delay that is minutes * seconds * milliseconds
+    Process.send_after(self(), :looping, 1 * 1 * 1000) 
     {:noreply, state} 
   end
 
@@ -46,8 +60,9 @@ defmodule CheckPoint.Worker do
   # and the frequency will back off so it doesn't flood
   # something that is already having problems
   @impl true
-  def handle_info(_msg, state) do
+  def handle_info(msg, state) do
     IO.puts("info")
+    IO.inspect(msg)
     IO.inspect(state)
     {:noreply, state}
   end
@@ -56,9 +71,9 @@ defmodule CheckPoint.Worker do
   @impl true
   def handle_continue(continue_arg, state) do
     Process.sleep(1000)
+    IO.puts("continue")
     IO.inspect(continue_arg)
     IO.inspect(state)
-    IO.puts("continue")
     {:noreply, state}
   end
 
