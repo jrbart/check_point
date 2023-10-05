@@ -36,3 +36,4 @@ check_point-*.tar
 
 # For now I am going to hide my tiddly wiki from my git repo...
 dev*.html
+Session.vim
