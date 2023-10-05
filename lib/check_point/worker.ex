@@ -1,9 +1,27 @@
 defmodule CheckPoint.Worker do
   use GenServer
 
-  # Client API
-  def start_link(%{fn: check_function} = default) when is_function(check_function) do
-    GenServer.start_link(__MODULE__, default)
+  @moduledoc """
+  Each checkpoint is a function being run in a genserver.  If the function returns :ok
+  then it will log the fact that it ran and its results and sleep for a given duration.
+  If it returns :error it will call the Alert moddule which will handle the escalation.
+  """
+    # API
+  @doc """
+  Create a checker (GenServer) to repeat a check function.
+
+    iex> {:ok, pid} = CheckPoint.Worker.check(fn echo -> echo end, %{args: {:ok}}, %{delay: 5})
+  """
+
+  def check(check_function, args, opts) do
+    start_link(%{fn: check_function, args: args, opts: opts})
+  end
+
+  # Client 
+  def start_link(%{fn: check_function} = params) when is_function(check_function) do
+    %{args: args} = params
+    delay = Map.get(params.opts, :delay, %{delay: 5 * 60 * 1_000}) # delault delay to 5 minutes
+    GenServer.start_link(__MODULE__, {check_function, args, Map.put(params.opts,:delay,delay)})
   end
 
   # Callbacks
@@ -11,18 +29,16 @@ defmodule CheckPoint.Worker do
   # the initialization showld quckly return so the engine can move on to 
   # initializing the rest of the checks.
   @impl true
-  def init(init_map) do
-    IO.puts("init")
-    IO.inspect(init_map)
-    {:ok, init_map, {:continue, :start}}
+  def init(init_tup) do
+    {:ok, init_tup, {:continue, :start}}
   end
 
   # call the check function and wait for the results
   @impl true
-  def handle_call(_request, from, state) do
-    IO.puts("call")
-    IO.inspect(state)
-    {:reply, from, state}
+  def handle_call(_request, _from, state) do
+    {check_fn, args, _opts} = state
+    reply = check_fn.(args)
+    {:reply, reply, state}
   end
 
   # the main loop will run the check funtion that was passed
@@ -31,24 +47,22 @@ defmodule CheckPoint.Worker do
   # then it should send_after to wake up later
   @impl true
   def handle_cast(_request, state) do
-    IO.puts("cast")
-    IO.inspect(state)
-    %{fn: check_fn, arg: arg} = state
-    IO.inspect(check_fn.(arg))
+    {check_fn, args, opts} = state
+    check_fn.(args)
     # send_after takes a delay that is minutes * seconds * milliseconds
-    Process.send_after(self(), :looping, 1 * 1 * 1000) 
+    %{delay: delay} = opts
+    Process.send_after(self(), :looping, delay) 
     {:noreply, state} 
   end
 
   # this is the main loop
   @impl true
   def handle_info(:looping, state) do
-    IO.puts("loop")
-    IO.inspect(state)
-    %{fn: check_fn, arg: arg} = state
-    IO.inspect(check_fn.(arg))
+    {check_fn, args, opts} = state
+    check_fn.(args)
     # send_after takes a delay that is minutes * seconds * milliseconds
-    Process.send_after(self(), :looping, 1 * 1 * 1000) 
+    %{delay: delay} = opts
+    Process.send_after(self(), :looping, delay) 
     {:noreply, state} 
   end
 
@@ -69,11 +83,7 @@ defmodule CheckPoint.Worker do
     
   # continue with any setup that needs to be done on init
   @impl true
-  def handle_continue(continue_arg, state) do
-    Process.sleep(1000)
-    IO.puts("continue")
-    IO.inspect(continue_arg)
-    IO.inspect(state)
+  def handle_continue(_continue_arg, state) do
     {:noreply, state}
   end
 
