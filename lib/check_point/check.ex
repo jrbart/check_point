@@ -5,21 +5,21 @@ defmodule CheckPoint.Check do
   @doc """
   Send an ICMP ping to an address
   """
-  def ping(address,args \\ %{timeout: 5}) do
+  def ping(_address,_args \\ %{timeout: 5}) do
     rand_ret()
   end
 
   @doc """
   Check to see if a TCP port is open
   """
-  def port(address,args \\ %{port: 22}) do
+  def port(_address,_args \\ %{port: 22}) do
    rand_ret() 
   end
 
   @doc """
   
   """
-  def http(address,args \\ %{regex: "OK"}) do
+  def http(_address,_args \\ %{regex: "OK"}) do
    rand_ret() 
   end
 

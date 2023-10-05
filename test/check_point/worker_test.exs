@@ -1,6 +1,7 @@
 defmodule CheckPoint.WorkerTest do
 	use ExUnit.Case
 	doctest CheckPoint.Worker
+ require Logger
 	alias CheckPoint.Worker
 
   describe "Worker.check/3" do
@@ -19,10 +20,11 @@ defmodule CheckPoint.WorkerTest do
     end
 
     test "exercise worker" do
-      {:ok, pid} = Worker.check(fn echo -> IO.puts("loop") end, {:ok}, %{delay: 5})
-      assert :ok == GenServer.call(pid,:ok)
-      assert GenServer.cast(pid,:ok)
-      Process.sleep(100)
+      {:ok, pid} = Worker.check(fn echo -> echo end, {:up}, %{delay: 5})
+      # for now anything passed through call or cast is ignored
+      assert {:up} == GenServer.call(pid,:blah)
+      assert GenServer.cast(pid,:blah)
+      Process.sleep(100) # give it time to loop a few
       assert :ok ==GenServer.stop(pid,:normal)
     end
 

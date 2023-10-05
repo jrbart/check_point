@@ -10,7 +10,7 @@ defmodule CheckPoint.Worker do
   @doc """
   Create a checker (GenServer) to repeat a check function.
 
-    iex> {:ok, pid} = CheckPoint.Worker.check(fn echo -> echo end, %{args: {:ok}}, %{delay: 5})
+    iex> {:ok, _pid} = CheckPoint.Worker.check(fn echo -> echo end, %{args: {:ok}}, %{delay: 5})
   """
 
   def check(check_function, args, opts) do
